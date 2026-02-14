@@ -260,9 +260,286 @@
     }
 
     /* ========================================== */
-    /* STAGE 3 — WORDLE                           */
+    /* STAGE 3 — JIGSAW PUZZLE                    */
     /* ========================================== */
     #stage3 {
+      background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .jigsaw-container {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 24px 16px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .jigsaw-title {
+      font-size: 22px;
+      color: #ff80ab;
+      margin-bottom: 8px;
+    }
+
+    .jigsaw-progress {
+      font-size: 14px;
+      color: rgba(255,128,171,0.6);
+      margin-bottom: 16px;
+    }
+
+    .jigsaw-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+      margin: 0 auto 24px;
+      width: 270px;
+      height: 270px;
+      border-radius: 10px;
+      padding: 3px;
+      position: relative;
+    }
+
+    @media (min-width: 400px) {
+      .jigsaw-board { width: 306px; height: 306px; }
+    }
+
+    .jigsaw-slot {
+      border-radius: 6px;
+      border: 2px dashed rgba(255,128,171,0.25);
+      background-size: 300% 300%;
+      opacity: 0.15;
+      transition: all 0.3s ease;
+    }
+
+    .jigsaw-slot.filled {
+      opacity: 1;
+      border: 2px solid rgba(255,64,129,0.5);
+      box-shadow: 0 0 10px rgba(255,64,129,0.3);
+    }
+
+    .jigsaw-slot.highlight {
+      border-color: rgba(255,64,129,0.7);
+      background-color: rgba(255,64,129,0.1);
+    }
+
+    .jigsaw-tray-label {
+      font-size: 13px;
+      color: rgba(255,128,171,0.45);
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+
+    .jigsaw-tray {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin: 0 auto;
+      max-width: 300px;
+    }
+
+    .jigsaw-piece {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      cursor: pointer;
+      background-size: 300% 300%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .jigsaw-piece:active { transform: scale(0.93); }
+
+    .jigsaw-piece.selected {
+      transform: scale(1.08);
+      box-shadow: 0 0 0 3px #ff4081, 0 4px 20px rgba(255,64,129,0.5);
+    }
+
+    .jigsaw-piece.placed {
+      display: none;
+    }
+
+    @keyframes slotPop {
+      0% { transform: scale(0.8); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes wrongShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .jigsaw-celebration {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 90;
+      background: rgba(26,10,30,0.95);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+    .jigsaw-celebration.active { opacity: 1; pointer-events: all; }
+    .jigsaw-celebration .emoji { font-size: 64px; animation: heartPulse 0.8s ease-in-out infinite; }
+    .jigsaw-celebration .text { font-size: 22px; color: #ff4081; margin-top: 20px; text-align: center; padding: 0 20px; }
+
+    /* ========================================== */
+    /* STAGE 4 — MEMORY MATCH                     */
+    /* ========================================== */
+    #stage4 {
+      background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .memory-container {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 24px 16px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .memory-title {
+      font-size: 22px;
+      color: #ff80ab;
+      margin-bottom: 8px;
+    }
+
+    .memory-moves {
+      font-size: 14px;
+      color: rgba(255,128,171,0.6);
+      margin-bottom: 16px;
+    }
+
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 0 auto 20px;
+      max-width: 320px;
+    }
+
+    @media (min-width: 400px) {
+      .memory-grid { max-width: 360px; gap: 12px; }
+    }
+
+    .memory-card {
+      position: relative;
+      aspect-ratio: 1;
+      cursor: pointer;
+      perspective: 600px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .memory-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.5s;
+      transform-style: preserve-3d;
+    }
+
+    .memory-card.flipped .memory-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .memory-card .front,
+    .memory-card .back {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .memory-card .back {
+      background: linear-gradient(135deg, #e91e63, #ff4081);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 2px 10px rgba(233,30,99,0.3);
+    }
+
+    .memory-card .front {
+      transform: rotateY(180deg);
+      overflow: hidden;
+    }
+
+    .memory-card .front img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .memory-card.matched .memory-card-inner {
+      animation: matchPop 0.4s ease;
+    }
+
+    .memory-card.matched .front {
+      box-shadow: 0 0 15px rgba(255,64,129,0.7), 0 0 30px rgba(255,64,129,0.3);
+      border-radius: 10px;
+    }
+
+    @keyframes matchPop {
+      0% { transform: rotateY(180deg) scale(1); }
+      50% { transform: rotateY(180deg) scale(1.1); }
+      100% { transform: rotateY(180deg) scale(1); }
+    }
+
+    .memory-card.matched::after {
+      content: '\2728';
+      position: absolute;
+      top: -5px; right: -5px;
+      font-size: 18px;
+      z-index: 5;
+      animation: sparkle 1s ease-out forwards;
+    }
+
+    @keyframes sparkle {
+      0% { opacity: 0; transform: scale(0) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+      100% { opacity: 0; transform: scale(0.8) rotate(360deg); }
+    }
+
+    .memory-celebration {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 90;
+      background: rgba(26,10,30,0.95);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+    .memory-celebration.active { opacity: 1; pointer-events: all; }
+    .memory-celebration .emoji { font-size: 64px; animation: heartPulse 0.8s ease-in-out infinite; }
+    .memory-celebration .text { font-size: 22px; color: #ff4081; margin-top: 20px; text-align: center; padding: 0 20px; }
+
+    /* ========================================== */
+    /* STAGE 5 — WORDLE                           */
+    /* ========================================== */
+    #stage5 {
       background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -421,9 +698,9 @@
     .wordle-celebration .text  { font-size: 22px; color: #ff4081; margin-top: 20px; text-align: center; padding: 0 20px; }
 
     /* ========================================== */
-    /* STAGE 4 — THE BIG REVEAL                   */
+    /* STAGE 6 — THE BIG REVEAL                   */
     /* ========================================== */
-    #stage4 {
+    #stage6 {
       background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -499,7 +776,7 @@
   <div class="floating-hearts" id="floatingHearts"></div>
   <div class="lock-content">
     <div class="lock-emoji">&#x1F49D;</div>
-    <p class="lock-title">Enter our special date<br>to unlock your surprise</p>
+    <p class="lock-title">Enter password</p>
     <input type="tel" class="lock-input" id="lockInput" maxlength="6"
            placeholder="MMDDYY" inputmode="numeric" autocomplete="off">
     <button class="lock-submit" id="lockSubmit">Unlock &#x1F495;</button>
@@ -517,8 +794,32 @@
   </div>
 </div>
 
-<!-- ============ STAGE 3: WORDLE ============ -->
+<!-- ============ STAGE 3: JIGSAW PUZZLE ============ -->
 <div class="stage" id="stage3">
+  <div class="jigsaw-container">
+    <h2 class="jigsaw-title">&#x1F9E9; Piece us together</h2>
+    <p class="jigsaw-progress" id="jigsawProgress">Pieces: 0 / 9</p>
+    <div class="jigsaw-board" id="jigsawBoard"></div>
+    <p class="jigsaw-tray-label">Tap a piece, then tap where it goes</p>
+    <div class="jigsaw-tray" id="jigsawTray"></div>
+  </div>
+</div>
+
+<!-- ============ STAGE 4: MEMORY MATCH ============ -->
+<div class="stage" id="stage4">
+  <div class="memory-container">
+    <h2 class="memory-title">&#x1F496; Match our memories</h2>
+    <p class="memory-moves" id="memoryMoves">Moves: 0</p>
+    <div class="memory-grid" id="memoryGrid"></div>
+  </div>
+  <div class="memory-celebration" id="memoryCelebration">
+    <div class="emoji">&#x1F496;</div>
+    <div class="text">You matched them all!</div>
+  </div>
+</div>
+
+<!-- ============ STAGE 5: WORDLE ============ -->
+<div class="stage" id="stage5">
   <div class="wordle-container">
     <h2 class="wordle-title">&#x1F9E9; Guess the Word</h2>
     <p class="wordle-subtitle">10 letters &bull; 6 attempts</p>
@@ -533,8 +834,8 @@
   </div>
 </div>
 
-<!-- ============ STAGE 4: THE BIG REVEAL ============ -->
-<div class="stage" id="stage4">
+<!-- ============ STAGE 6: THE BIG REVEAL ============ -->
+<div class="stage" id="stage6">
   <canvas id="confetti-canvas"></canvas>
   <div class="floating-hearts" id="revealHearts"></div>
   <div class="reveal-content">
@@ -542,8 +843,8 @@
     <div class="reveal-detail reveal-d1">&#x1F3A4; Bad Friends Live</div>
     <div class="reveal-detail reveal-d2">&#x1F3AC; Netflix is a Joke</div>
     <div class="reveal-detail reveal-d3">&#x1F4C5; May 8th @ 7 PM</div>
-    <div class="reveal-detail reveal-d4">&#x1F49D; Happy Valentine's Day, babe!</div>
-    <p class="reveal-final">I love you more than words can say.<br>Can't wait for this adventure with you.</p>
+    <div class="reveal-detail reveal-d4">&#x1F49D; Happy Valentine's Day, love!</div>
+    <p class="reveal-final">I love you more than words can say.</p>
     <div class="reveal-hearts">&#x2764;&#xFE0F;&#x1F9E1;&#x1F49B;&#x1F49A;&#x1F499;&#x1F49C;</div>
   </div>
 </div>
@@ -585,8 +886,10 @@
       document.getElementById(stageId).classList.add('active');
       overlay.classList.remove('active');
       if (stageId === 'stage2') startTypewriter();
-      if (stageId === 'stage3') initWordle();
-      if (stageId === 'stage4') startReveal();
+      if (stageId === 'stage3') initPuzzle();
+      if (stageId === 'stage4') initMemoryMatch();
+      if (stageId === 'stage5') initWordle();
+      if (stageId === 'stage6') startReveal();
     }, 600);
   }
 
@@ -595,7 +898,7 @@
      ============================================== */
   var PASSWORD = '082318';
   var wrongMessages = [
-    "Nope! Try again babe \u{1F618}",
+    "Nope! Try again love \u{1F618}",
     "Hmm, that's not it... \u{1F914}",
     "Think harder! \u{1F4AD}",
     "So close... maybe not \u{1F61C}",
@@ -657,11 +960,13 @@
      STAGE 2 — LOVE LETTER (typewriter)
      ============================================== */
   var loveMessage = [
-    "Hey babe,",
+    "Hey love,",
     "",
     "Happy Valentine\u2019s Day! Every day with you feels like an adventure, and I wouldn\u2019t trade it for anything.",
     "",
     "You make me laugh, you make me better, and you make everything more fun.",
+    "",
+    "I can\u2019t wait to grow old with you. You\u2019re my person, and I\u2019m in this forever.",
     "",
     "I have a little surprise for you\u2026 but first, you have to earn it. \u{1F60F}"
   ].join('\n');
@@ -718,7 +1023,240 @@
   }
 
   /* ==============================================
-     STAGE 3 — WORDLE (BADFRIENDS)
+     STAGE 3 — JIGSAW PUZZLE
+     ============================================== */
+  var jigsawPlaced = 0;
+  var jigsawSelected = null; // index of selected piece (0-8)
+  var jigsawDone = false;
+
+  function initPuzzle() {
+    var board = document.getElementById('jigsawBoard');
+    var tray = document.getElementById('jigsawTray');
+    board.innerHTML = '';
+    tray.innerHTML = '';
+    jigsawPlaced = 0;
+    jigsawSelected = null;
+    jigsawDone = false;
+    document.getElementById('jigsawProgress').textContent = 'Pieces: 0 / 9';
+
+    var imgUrl = BASE_URL + '/assets/img/memory/1.jpg';
+
+    // Build 9 slots on the board (ghost image as guide)
+    for (var i = 0; i < 9; i++) {
+      var slot = document.createElement('div');
+      slot.className = 'jigsaw-slot';
+      slot.setAttribute('data-slot', i);
+      var col = i % 3;
+      var row = Math.floor(i / 3);
+      slot.style.backgroundImage = 'url(' + imgUrl + ')';
+      slot.style.backgroundPosition = (col * 50) + '% ' + (row * 50) + '%';
+      slot.style.backgroundSize = '300% 300%';
+      slot.addEventListener('click', onSlotClick);
+      board.appendChild(slot);
+    }
+
+    // Build 9 pieces in scrambled order
+    var order = [0,1,2,3,4,5,6,7,8];
+    for (var i = order.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+    }
+
+    for (var i = 0; i < order.length; i++) {
+      var val = order[i];
+      var piece = document.createElement('div');
+      piece.className = 'jigsaw-piece';
+      piece.setAttribute('data-piece', val);
+      var col = val % 3;
+      var row = Math.floor(val / 3);
+      piece.style.backgroundImage = 'url(' + imgUrl + ')';
+      piece.style.backgroundPosition = (col * 50) + '% ' + (row * 50) + '%';
+      piece.style.backgroundSize = '300% 300%';
+      piece.addEventListener('click', onPieceClick);
+      tray.appendChild(piece);
+    }
+  }
+
+  function onPieceClick(e) {
+    if (jigsawDone) return;
+    e.stopPropagation();
+    var piece = this;
+    var val = parseInt(piece.getAttribute('data-piece'));
+
+    // Deselect if tapping the same piece
+    if (jigsawSelected === val) {
+      piece.classList.remove('selected');
+      jigsawSelected = null;
+      clearSlotHighlights();
+      return;
+    }
+
+    // Deselect previous
+    var prev = document.querySelector('.jigsaw-piece.selected');
+    if (prev) prev.classList.remove('selected');
+
+    // Select this piece
+    piece.classList.add('selected');
+    jigsawSelected = val;
+
+    // Highlight the correct slot as a hint
+    clearSlotHighlights();
+    var targetSlot = document.querySelector('[data-slot="' + val + '"]');
+    if (targetSlot && !targetSlot.classList.contains('filled')) {
+      targetSlot.classList.add('highlight');
+    }
+  }
+
+  function onSlotClick() {
+    if (jigsawDone) return;
+    if (jigsawSelected === null) return;
+
+    var slotIdx = parseInt(this.getAttribute('data-slot'));
+
+    if (this.classList.contains('filled')) return;
+
+    if (slotIdx === jigsawSelected) {
+      // Correct placement!
+      this.classList.add('filled');
+      this.style.opacity = '1';
+      this.style.animation = 'slotPop 0.3s ease';
+
+      // Hide the piece from the tray
+      var piece = document.querySelector('[data-piece="' + jigsawSelected + '"]');
+      if (piece) piece.classList.add('placed');
+
+      jigsawPlaced++;
+      document.getElementById('jigsawProgress').textContent = 'Pieces: ' + jigsawPlaced + ' / 9';
+      jigsawSelected = null;
+      clearSlotHighlights();
+
+      // Check if complete
+      if (jigsawPlaced === 9) {
+        jigsawDone = true;
+        setTimeout(function() { transitionTo('stage4'); }, 800);
+      }
+    } else {
+      // Wrong slot — shake the slot
+      var slot = this;
+      slot.style.animation = 'wrongShake 0.4s ease';
+      setTimeout(function() { slot.style.animation = ''; }, 400);
+    }
+  }
+
+  function clearSlotHighlights() {
+    var slots = document.querySelectorAll('.jigsaw-slot.highlight');
+    for (var i = 0; i < slots.length; i++) slots[i].classList.remove('highlight');
+  }
+
+  /* ==============================================
+     STAGE 4 — MEMORY MATCH
+     ============================================== */
+  var memoryMoves = 0;
+  var memoryFlipped = [];
+  var memoryMatched = 0;
+  var memoryLocked = false;
+  var BASE_URL = '{{ site.baseurl }}';
+
+  function initMemoryMatch() {
+    var grid = document.getElementById('memoryGrid');
+    grid.innerHTML = '';
+    memoryMoves = 0;
+    memoryFlipped = [];
+    memoryMatched = 0;
+    memoryLocked = false;
+    document.getElementById('memoryMoves').textContent = 'Moves: 0';
+
+    // Create array of 6 pairs (1-6, each twice)
+    var cards = [];
+    for (var i = 1; i <= 6; i++) {
+      cards.push(i);
+      cards.push(i);
+    }
+
+    // Fisher-Yates shuffle
+    for (var i = cards.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = cards[i];
+      cards[i] = cards[j];
+      cards[j] = tmp;
+    }
+
+    // Build cards
+    for (var i = 0; i < cards.length; i++) {
+      var card = document.createElement('div');
+      card.className = 'memory-card';
+      card.setAttribute('data-value', cards[i]);
+
+      var inner = document.createElement('div');
+      inner.className = 'memory-card-inner';
+
+      var back = document.createElement('div');
+      back.className = 'back';
+      back.textContent = '\u{1F495}';
+
+      var front = document.createElement('div');
+      front.className = 'front';
+      var img = document.createElement('img');
+      img.src = BASE_URL + '/assets/img/memory/' + cards[i] + '.jpg';
+      img.alt = 'Memory ' + cards[i];
+      front.appendChild(img);
+
+      inner.appendChild(back);
+      inner.appendChild(front);
+      card.appendChild(inner);
+
+      card.addEventListener('click', onMemoryCardClick);
+      grid.appendChild(card);
+    }
+  }
+
+  function onMemoryCardClick() {
+    var card = this;
+    // Ignore if locked, already flipped, or already matched
+    if (memoryLocked) return;
+    if (card.classList.contains('flipped')) return;
+    if (card.classList.contains('matched')) return;
+
+    card.classList.add('flipped');
+    memoryFlipped.push(card);
+
+    if (memoryFlipped.length === 2) {
+      memoryMoves++;
+      document.getElementById('memoryMoves').textContent = 'Moves: ' + memoryMoves;
+
+      var card1 = memoryFlipped[0];
+      var card2 = memoryFlipped[1];
+
+      if (card1.getAttribute('data-value') === card2.getAttribute('data-value')) {
+        // Match found
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        memoryFlipped = [];
+        memoryMatched++;
+
+        if (memoryMatched === 6) {
+          // All pairs matched — celebrate
+          setTimeout(function() {
+            var celeb = document.getElementById('memoryCelebration');
+            celeb.classList.add('active');
+            setTimeout(function() { transitionTo('stage5'); }, 2500);
+          }, 600);
+        }
+      } else {
+        // No match — flip back after a delay
+        memoryLocked = true;
+        setTimeout(function() {
+          card1.classList.remove('flipped');
+          card2.classList.remove('flipped');
+          memoryFlipped = [];
+          memoryLocked = false;
+        }, 1000);
+      }
+    }
+  }
+
+  /* ==============================================
+     STAGE 5 — WORDLE (BADFRIENDS)
      ============================================== */
   var ANSWER = 'BADFRIENDS';
   var WORD_LENGTH = 10;
@@ -912,11 +1450,11 @@
     var celeb = document.getElementById('wordleCelebration');
     document.getElementById('celebrationText').textContent = text;
     celeb.classList.add('active');
-    setTimeout(function() { transitionTo('stage4'); }, 2500);
+    setTimeout(function() { transitionTo('stage6'); }, 2500);
   }
 
   /* ==============================================
-     STAGE 4 — THE BIG REVEAL (confetti + hearts)
+     STAGE 6 — THE BIG REVEAL (confetti + hearts)
      ============================================== */
   function startReveal() {
     createFloatingHearts(document.getElementById('revealHearts'), 22);
