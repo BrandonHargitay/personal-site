@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>For You</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Georgia', serif;
+      background: #1a0a1e;
+      color: #fff;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* ===== STAGE SYSTEM ===== */
+    .stage {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+    .stage.active { display: flex; }
+
+    .fade-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #1a0a1e;
+      z-index: 99;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    .fade-overlay.active { opacity: 1; pointer-events: all; }
+
+    /* ===== FLOATING HEARTS (reused across stages) ===== */
+    .floating-hearts {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .floating-heart {
+      position: absolute;
+      bottom: -50px;
+      opacity: 0.6;
+      animation: floatUp linear infinite;
+    }
+
+    @keyframes floatUp {
+      0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.6; }
+      100% { transform: translateY(-115vh) rotate(360deg) scale(0.5); opacity: 0; }
+    }
+
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ========================================== */
+    /* STAGE 1 — LOCK SCREEN                      */
+    /* ========================================== */
+    #stage1 {
+      background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
+    }
+
+    .lock-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .lock-emoji {
+      font-size: 64px;
+      margin-bottom: 24px;
+      animation: heartPulse 1.5s ease-in-out infinite;
+    }
+
+    .lock-title {
+      font-size: 18px;
+      color: #ff80ab;
+      margin-bottom: 32px;
+      line-height: 1.5;
+      font-style: italic;
+    }
+
+    .lock-input {
+      width: 220px;
+      padding: 14px 20px;
+      font-size: 24px;
+      text-align: center;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid #ff4081;
+      border-radius: 50px;
+      color: #fff;
+      outline: none;
+      letter-spacing: 8px;
+      font-family: monospace;
+      transition: all 0.3s;
+      box-shadow: 0 0 20px rgba(255,64,129,0.3);
+      -webkit-appearance: none;
+    }
+    .lock-input:focus {
+      border-color: #ff80ab;
+      box-shadow: 0 0 30px rgba(255,64,129,0.5);
+    }
+    .lock-input.shake { animation: shake 0.5s ease-in-out; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-10px); }
+      40% { transform: translateX(10px); }
+      60% { transform: translateX(-10px); }
+      80% { transform: translateX(10px); }
+    }
+
+    .lock-submit {
+      display: block;
+      margin: 24px auto 0;
+      padding: 14px 44px;
+      font-size: 17px;
+      background: linear-gradient(135deg, #ff1744, #ff4081);
+      border: none;
+      border-radius: 50px;
+      color: #fff;
+      cursor: pointer;
+      font-family: Georgia, serif;
+      box-shadow: 0 4px 15px rgba(255,23,68,0.4);
+    }
+    .lock-submit:active { transform: scale(0.95); }
+
+    .lock-message {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #ff80ab;
+      min-height: 24px;
+      font-style: italic;
+    }
+
+    /* Heart burst on correct password */
+    .heart-burst {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .burst-heart {
+      position: absolute;
+      top: 50%; left: 50%;
+      animation: burstOut 1.2s ease-out forwards;
+    }
+    @keyframes burstOut {
+      0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(1.5); opacity: 0; }
+    }
+
+    /* ========================================== */
+    /* STAGE 2 — LOVE LETTER                      */
+    /* ========================================== */
+    #stage2 {
+      background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .letter-content {
+      position: relative;
+      z-index: 2;
+      padding: 48px 28px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .letter-greeting {
+      font-size: 48px;
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeInUp 0.8s ease forwards;
+    }
+
+    .typewriter-text {
+      font-size: 17px;
+      line-height: 1.9;
+      color: #fce4ec;
+      text-align: left;
+      min-height: 200px;
+    }
+
+    .typewriter-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.2em;
+      background: #ff4081;
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .continue-btn {
+      display: none;
+      margin: 40px auto 0;
+      padding: 16px 48px;
+      font-size: 18px;
+      background: linear-gradient(135deg, #ff1744, #ff4081);
+      border: none;
+      border-radius: 50px;
+      color: #fff;
+      cursor: pointer;
+      font-family: Georgia, serif;
+      box-shadow: 0 4px 20px rgba(255,23,68,0.4);
+      opacity: 0;
+    }
+    .continue-btn.visible {
+      display: block;
+      animation: fadeInUp 0.5s ease forwards, heartPulse 1.5s ease-in-out 0.5s infinite;
+    }
+    .continue-btn:active { transform: scale(0.95); }
+
+    /* Falling petals */
+    .petal {
+      position: fixed;
+      top: -30px;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+      animation: fallPetal linear infinite;
+    }
+    @keyframes fallPetal {
+      0%   { transform: translateY(0) rotate(0deg) translateX(0); opacity: 0; }
+      10%  { opacity: 0.5; }
+      50%  { transform: translateY(50vh) rotate(180deg) translateX(30px); opacity: 0.6; }
+      100% { transform: translateY(115vh) rotate(360deg) translateX(-10px); opacity: 0; }
+    }
+
+    /* ========================================== */
+    /* STAGE 3 — WORDLE                           */
+    /* ========================================== */
+    #stage3 {
+      background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      justify-content: flex-start;
+      padding-top: 16px;
+    }
+
+    .wordle-container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 500px;
+      padding: 0 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .wordle-title {
+      font-size: 18px;
+      color: #ff80ab;
+      margin-bottom: 2px;
+      text-align: center;
+    }
+    .wordle-subtitle {
+      font-size: 13px;
+      color: rgba(255,128,171,0.55);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .wordle-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .wordle-row {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+    }
+    .wordle-cell {
+      width: 30px;
+      height: 36px;
+      border: 2px solid #444;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+      font-family: 'Arial', sans-serif;
+      text-transform: uppercase;
+      color: #fff;
+      transition: border-color 0.2s;
+    }
+
+    /* Responsive: slightly bigger cells on wider phones */
+    @media (min-width: 400px) {
+      .wordle-cell { width: 34px; height: 40px; font-size: 16px; }
+    }
+
+    .wordle-cell.filled { border-color: #777; animation: popIn 0.1s ease; }
+    .wordle-cell.correct { background: #e91e63; border-color: #e91e63; }
+    .wordle-cell.present { background: #f9a825; border-color: #f9a825; }
+    .wordle-cell.absent  { background: #424242; border-color: #424242; }
+    .wordle-cell.reveal  { animation: flipReveal 0.5s ease; }
+
+    @keyframes popIn {
+      0% { transform: scale(0.85); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    @keyframes flipReveal {
+      0%   { transform: scaleY(0); }
+      100% { transform: scaleY(1); }
+    }
+
+    .wordle-hint {
+      font-size: 14px;
+      color: #ffd700;
+      margin: 6px 0;
+      min-height: 20px;
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* On-screen keyboard — optimized for mobile tap targets */
+    .keyboard {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      max-width: 500px;
+      padding: 0 2px;
+    }
+    .keyboard-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+    }
+    .key {
+      padding: 14px 0;
+      min-width: 26px;
+      border: none;
+      border-radius: 6px;
+      background: #555;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+      text-transform: uppercase;
+      flex: 1;
+      max-width: 42px;
+      transition: background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .key:active { opacity: 0.7; }
+    .key.wide { min-width: 48px; max-width: 58px; font-size: 11px; }
+    .key.correct { background: #e91e63; }
+    .key.present { background: #f9a825; }
+    .key.absent  { background: #333; color: #555; }
+
+    .give-up-btn {
+      margin: 14px 0 24px;
+      padding: 10px 32px;
+      font-size: 14px;
+      background: transparent;
+      border: 1px solid rgba(255,64,129,0.35);
+      border-radius: 50px;
+      color: rgba(255,64,129,0.55);
+      cursor: pointer;
+      font-family: Georgia, serif;
+    }
+    .give-up-btn:active { opacity: 0.7; }
+
+    /* Wordle celebration overlay */
+    .wordle-celebration {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 90;
+      background: rgba(26,10,30,0.95);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+    .wordle-celebration.active { opacity: 1; pointer-events: all; }
+    .wordle-celebration .emoji { font-size: 64px; animation: heartPulse 0.8s ease-in-out infinite; }
+    .wordle-celebration .text  { font-size: 22px; color: #ff4081; margin-top: 20px; text-align: center; padding: 0 20px; }
+
+    /* ========================================== */
+    /* STAGE 4 — THE BIG REVEAL                   */
+    /* ========================================== */
+    #stage4 {
+      background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    .reveal-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 36px 24px 60px;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    .reveal-image {
+      width: 92%;
+      max-width: 380px;
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(255,64,129,0.5), 0 0 80px rgba(255,64,129,0.2);
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: revealPop 0.8s ease 0.5s forwards;
+    }
+    @keyframes revealPop {
+      from { opacity: 0; transform: scale(0.7); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .reveal-detail {
+      font-size: 20px;
+      color: #ff4081;
+      margin: 14px 0;
+      opacity: 0;
+      font-weight: bold;
+    }
+    .reveal-d1 { animation: fadeInUp 0.8s ease 1.3s forwards; }
+    .reveal-d2 { animation: fadeInUp 0.8s ease 1.8s forwards; }
+    .reveal-d3 { animation: fadeInUp 0.8s ease 2.3s forwards; }
+    .reveal-d4 { animation: fadeInUp 0.8s ease 2.8s forwards; font-size: 22px; }
+
+    .reveal-final {
+      font-size: 18px;
+      color: #fce4ec;
+      margin-top: 32px;
+      opacity: 0;
+      font-style: italic;
+      line-height: 1.6;
+      animation: fadeInUp 0.8s ease 3.5s forwards;
+    }
+
+    .reveal-hearts {
+      font-size: 36px;
+      margin-top: 20px;
+      opacity: 0;
+      animation: fadeInUp 0.8s ease 4.2s forwards;
+    }
+  </style>
+</head>
+<body>
+
+<div class="fade-overlay" id="fadeOverlay"></div>
+
+<!-- ============ STAGE 1: LOCK SCREEN ============ -->
+<div class="stage active" id="stage1">
+  <div class="floating-hearts" id="floatingHearts"></div>
+  <div class="lock-content">
+    <div class="lock-emoji">&#x1F49D;</div>
+    <p class="lock-title">Enter our special date<br>to unlock your surprise</p>
+    <input type="tel" class="lock-input" id="lockInput" maxlength="6"
+           placeholder="MMDDYY" inputmode="numeric" autocomplete="off">
+    <button class="lock-submit" id="lockSubmit">Unlock &#x1F495;</button>
+    <p class="lock-message" id="lockMessage"></p>
+  </div>
+</div>
+
+<!-- ============ STAGE 2: LOVE LETTER ============ -->
+<div class="stage" id="stage2">
+  <div class="floating-hearts" id="petalsContainer"></div>
+  <div class="letter-content">
+    <div class="letter-greeting">&#x1F48C;</div>
+    <div class="typewriter-text" id="typewriterText"></div>
+    <button class="continue-btn" id="continueBtn">Continue &#x1F495;</button>
+  </div>
+</div>
+
+<!-- ============ STAGE 3: WORDLE ============ -->
+<div class="stage" id="stage3">
+  <div class="wordle-container">
+    <h2 class="wordle-title">&#x1F9E9; Guess the Word</h2>
+    <p class="wordle-subtitle">10 letters &bull; 6 attempts</p>
+    <div class="wordle-grid" id="wordleGrid"></div>
+    <div class="wordle-hint" id="wordleHint"></div>
+    <div class="keyboard" id="keyboard"></div>
+    <button class="give-up-btn" id="giveUpBtn">I give up &#x1F605;</button>
+  </div>
+  <div class="wordle-celebration" id="wordleCelebration">
+    <div class="emoji">&#x1F389;</div>
+    <div class="text" id="celebrationText">You got it!</div>
+  </div>
+</div>
+
+<!-- ============ STAGE 4: THE BIG REVEAL ============ -->
+<div class="stage" id="stage4">
+  <canvas id="confetti-canvas"></canvas>
+  <div class="floating-hearts" id="revealHearts"></div>
+  <div class="reveal-content">
+    <img src="{{ site.baseurl }}/assets/img/badfriends.jpg" class="reveal-image" alt="Bad Friends Live">
+    <div class="reveal-detail reveal-d1">&#x1F3A4; Bad Friends Live</div>
+    <div class="reveal-detail reveal-d2">&#x1F3AC; Netflix is a Joke</div>
+    <div class="reveal-detail reveal-d3">&#x1F4C5; May 8th @ 7 PM</div>
+    <div class="reveal-detail reveal-d4">&#x1F49D; Happy Valentine's Day, babe!</div>
+    <p class="reveal-final">I love you more than words can say.<br>Can't wait for this adventure with you.</p>
+    <div class="reveal-hearts">&#x2764;&#xFE0F;&#x1F9E1;&#x1F49B;&#x1F49A;&#x1F499;&#x1F49C;</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ==============================================
+     FLOATING HEARTS — reusable across stages
+     ============================================== */
+  var heartEmojis = ['\u{1F495}','\u{1F497}','\u{1F496}','\u{1F498}','\u2764\uFE0F','\u{1F493}','\u{1F49E}'];
+
+  function createFloatingHearts(container, count) {
+    for (var i = 0; i < count; i++) {
+      var el = document.createElement('div');
+      el.className = 'floating-heart';
+      el.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+      el.style.left = Math.random() * 100 + '%';
+      el.style.animationDuration = (7 + Math.random() * 9) + 's';
+      el.style.animationDelay = (Math.random() * 12) + 's';
+      el.style.fontSize = (16 + Math.random() * 18) + 'px';
+      container.appendChild(el);
+    }
+  }
+
+  // Stage 1 background hearts
+  createFloatingHearts(document.getElementById('floatingHearts'), 18);
+
+  /* ==============================================
+     STAGE TRANSITIONS
+     ============================================== */
+  function transitionTo(stageId) {
+    var overlay = document.getElementById('fadeOverlay');
+    overlay.classList.add('active');
+    setTimeout(function() {
+      var stages = document.querySelectorAll('.stage');
+      for (var i = 0; i < stages.length; i++) stages[i].classList.remove('active');
+      document.getElementById(stageId).classList.add('active');
+      overlay.classList.remove('active');
+      if (stageId === 'stage2') startTypewriter();
+      if (stageId === 'stage3') initWordle();
+      if (stageId === 'stage4') startReveal();
+    }, 600);
+  }
+
+  /* ==============================================
+     STAGE 1 — LOCK SCREEN
+     ============================================== */
+  var PASSWORD = '082318';
+  var wrongMessages = [
+    "Nope! Try again babe \u{1F618}",
+    "Hmm, that's not it... \u{1F914}",
+    "Think harder! \u{1F4AD}",
+    "So close... maybe not \u{1F61C}",
+    "Keep trying cutie! \u{1F495}",
+    "That's not our date! \u{1F648}"
+  ];
+  var wrongCount = 0;
+
+  var lockInput = document.getElementById('lockInput');
+  var lockSubmit = document.getElementById('lockSubmit');
+  var lockMessage = document.getElementById('lockMessage');
+
+  function checkPassword() {
+    var val = lockInput.value.trim();
+    if (!val) return;
+    if (val === PASSWORD) {
+      lockMessage.textContent = '\u{1F496}';
+      lockMessage.style.fontSize = '32px';
+      lockSubmit.disabled = true;
+      lockInput.disabled = true;
+      createHeartBurst();
+      setTimeout(function() { transitionTo('stage2'); }, 1200);
+    } else {
+      lockInput.classList.add('shake');
+      lockMessage.textContent = wrongMessages[wrongCount % wrongMessages.length];
+      wrongCount++;
+      setTimeout(function() {
+        lockInput.classList.remove('shake');
+        lockInput.value = '';
+        lockInput.focus();
+      }, 500);
+    }
+  }
+
+  lockSubmit.addEventListener('click', checkPassword);
+  lockInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkPassword();
+  });
+
+  function createHeartBurst() {
+    var burst = document.createElement('div');
+    burst.className = 'heart-burst';
+    for (var i = 0; i < 24; i++) {
+      var h = document.createElement('div');
+      h.className = 'burst-heart';
+      h.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+      var angle = (Math.PI * 2 * i) / 24;
+      var dist = 120 + Math.random() * 180;
+      h.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+      h.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+      h.style.fontSize = (20 + Math.random() * 22) + 'px';
+      burst.appendChild(h);
+    }
+    document.body.appendChild(burst);
+    setTimeout(function() { burst.remove(); }, 1500);
+  }
+
+  /* ==============================================
+     STAGE 2 — LOVE LETTER (typewriter)
+     ============================================== */
+  var loveMessage = [
+    "Hey babe,",
+    "",
+    "Happy Valentine\u2019s Day! Every day with you feels like an adventure, and I wouldn\u2019t trade it for anything.",
+    "",
+    "You make me laugh, you make me better, and you make everything more fun.",
+    "",
+    "I have a little surprise for you\u2026 but first, you have to earn it. \u{1F60F}"
+  ].join('\n');
+
+  function startTypewriter() {
+    // Create falling petals
+    var petals = document.getElementById('petalsContainer');
+    var petalEmojis = ['\u{1F339}','\u{1F497}','\u{1F338}','\u{1F495}','\u2728'];
+    for (var i = 0; i < 14; i++) {
+      var p = document.createElement('div');
+      p.className = 'petal';
+      p.textContent = petalEmojis[Math.floor(Math.random() * petalEmojis.length)];
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDuration = (6 + Math.random() * 8) + 's';
+      p.style.animationDelay = (Math.random() * 8) + 's';
+      p.style.fontSize = (16 + Math.random() * 10) + 'px';
+      petals.appendChild(p);
+    }
+
+    var textEl = document.getElementById('typewriterText');
+    var continueBtn = document.getElementById('continueBtn');
+    var idx = 0;
+    var cursor = document.createElement('span');
+    cursor.className = 'typewriter-cursor';
+
+    function typeChar() {
+      if (idx < loveMessage.length) {
+        var ch = loveMessage[idx];
+        if (ch === '\n') {
+          textEl.appendChild(document.createElement('br'));
+        } else {
+          textEl.appendChild(document.createTextNode(ch));
+        }
+        // Re-append cursor so it stays at the end
+        if (cursor.parentNode) cursor.remove();
+        textEl.appendChild(cursor);
+        idx++;
+        var delay = (ch === '.' || ch === '!' || ch === '\u2026') ? 150
+                  : (ch === ',' || ch === '\u2019') ? 80
+                  : (ch === '\n') ? 250
+                  : 35;
+        setTimeout(typeChar, delay);
+      } else {
+        cursor.remove();
+        continueBtn.classList.add('visible');
+      }
+    }
+
+    setTimeout(typeChar, 800);
+
+    continueBtn.addEventListener('click', function() {
+      transitionTo('stage3');
+    });
+  }
+
+  /* ==============================================
+     STAGE 3 — WORDLE (BADFRIENDS)
+     ============================================== */
+  var ANSWER = 'BADFRIENDS';
+  var WORD_LENGTH = 10;
+  var MAX_ATTEMPTS = 6;
+  var currentRow = 0;
+  var currentCol = 0;
+  var gameOver = false;
+
+  function initWordle() {
+    var grid = document.getElementById('wordleGrid');
+    grid.innerHTML = '';
+    for (var r = 0; r < MAX_ATTEMPTS; r++) {
+      var row = document.createElement('div');
+      row.className = 'wordle-row';
+      for (var c = 0; c < WORD_LENGTH; c++) {
+        var cell = document.createElement('div');
+        cell.className = 'wordle-cell';
+        cell.id = 'cell-' + r + '-' + c;
+        row.appendChild(cell);
+      }
+      grid.appendChild(row);
+    }
+    buildKeyboard();
+
+    document.getElementById('giveUpBtn').addEventListener('click', function() {
+      if (gameOver) return;
+      gameOver = true;
+      revealAnswer();
+    });
+  }
+
+  function buildKeyboard() {
+    var rows = [
+      ['Q','W','E','R','T','Y','U','I','O','P'],
+      ['A','S','D','F','G','H','J','K','L'],
+      ['ENT','Z','X','C','V','B','N','M','\u232B']
+    ];
+    var kb = document.getElementById('keyboard');
+    kb.innerHTML = '';
+
+    rows.forEach(function(row) {
+      var rowEl = document.createElement('div');
+      rowEl.className = 'keyboard-row';
+      row.forEach(function(key) {
+        var btn = document.createElement('button');
+        btn.className = 'key';
+        btn.textContent = key;
+        btn.setAttribute('data-key', key);
+        if (key === 'ENT' || key === '\u232B') btn.classList.add('wide');
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          handleKey(key);
+        });
+        rowEl.appendChild(btn);
+      });
+      kb.appendChild(rowEl);
+    });
+  }
+
+  function handleKey(key) {
+    if (gameOver) return;
+
+    if (key === '\u232B') {
+      if (currentCol > 0) {
+        currentCol--;
+        var cell = document.getElementById('cell-' + currentRow + '-' + currentCol);
+        cell.textContent = '';
+        cell.classList.remove('filled');
+      }
+    } else if (key === 'ENT') {
+      if (currentCol === WORD_LENGTH) submitGuess();
+    } else {
+      if (currentCol < WORD_LENGTH) {
+        var cell = document.getElementById('cell-' + currentRow + '-' + currentCol);
+        cell.textContent = key;
+        cell.classList.add('filled');
+        currentCol++;
+      }
+    }
+  }
+
+  function submitGuess() {
+    var guess = '';
+    for (var c = 0; c < WORD_LENGTH; c++) {
+      guess += document.getElementById('cell-' + currentRow + '-' + c).textContent;
+    }
+    guess = guess.toUpperCase();
+
+    var result = evaluateGuess(guess);
+
+    // Animate cells with staggered reveals
+    for (var c = 0; c < WORD_LENGTH; c++) {
+      (function(col) {
+        var cell = document.getElementById('cell-' + currentRow + '-' + col);
+        setTimeout(function() {
+          cell.classList.add(result[col], 'reveal');
+        }, col * 120);
+      })(c);
+    }
+
+    // Update keyboard colors after all cells have flipped
+    var revealDone = WORD_LENGTH * 120 + 300;
+    setTimeout(function() {
+      for (var c = 0; c < WORD_LENGTH; c++) {
+        var letter = guess[c];
+        var keyEl = document.querySelector('[data-key="' + letter + '"]');
+        if (!keyEl) continue;
+        if (result[c] === 'correct') {
+          keyEl.className = 'key correct';
+        } else if (result[c] === 'present' && !keyEl.classList.contains('correct')) {
+          keyEl.className = 'key present';
+        } else if (result[c] === 'absent' && !keyEl.classList.contains('correct') && !keyEl.classList.contains('present')) {
+          keyEl.className = 'key absent';
+        }
+      }
+    }, revealDone);
+
+    // Check win
+    if (guess === ANSWER) {
+      gameOver = true;
+      setTimeout(function() {
+        showCelebration('You got it! \u{1F389}');
+      }, revealDone + 200);
+      return;
+    }
+
+    currentRow++;
+    currentCol = 0;
+
+    // Progressive hints
+    setTimeout(function() {
+      var hintEl = document.getElementById('wordleHint');
+      if (currentRow === 3) hintEl.textContent = '\u{1F4A1} Hint: It\u2019s a podcast...';
+      else if (currentRow === 5) hintEl.textContent = '\u{1F4A1} Hint: Bobby & Andrew...';
+    }, revealDone);
+
+    // Check loss
+    if (currentRow >= MAX_ATTEMPTS) {
+      gameOver = true;
+      setTimeout(function() { revealAnswer(); }, revealDone + 200);
+    }
+  }
+
+  function evaluateGuess(guess) {
+    var result = [];
+    var answerArr = ANSWER.split('');
+    var guessArr = guess.split('');
+    var used = [];
+    var i, j;
+
+    for (i = 0; i < WORD_LENGTH; i++) { result[i] = 'absent'; used[i] = false; }
+
+    // First pass — exact matches
+    for (i = 0; i < WORD_LENGTH; i++) {
+      if (guessArr[i] === answerArr[i]) {
+        result[i] = 'correct';
+        used[i] = true;
+        guessArr[i] = null;
+      }
+    }
+    // Second pass — present but wrong position
+    for (i = 0; i < WORD_LENGTH; i++) {
+      if (guessArr[i] === null) continue;
+      for (j = 0; j < WORD_LENGTH; j++) {
+        if (!used[j] && guessArr[i] === answerArr[j]) {
+          result[i] = 'present';
+          used[j] = true;
+          break;
+        }
+      }
+    }
+    return result;
+  }
+
+  function revealAnswer() {
+    // Show the answer in the last available row
+    var row = currentRow < MAX_ATTEMPTS ? currentRow : MAX_ATTEMPTS - 1;
+    for (var c = 0; c < WORD_LENGTH; c++) {
+      var cell = document.getElementById('cell-' + row + '-' + c);
+      cell.textContent = ANSWER[c];
+      (function(col, cl) {
+        setTimeout(function() { cl.classList.add('correct', 'reveal'); }, col * 120);
+      })(c, cell);
+    }
+    setTimeout(function() {
+      showCelebration('The answer was BADFRIENDS! \u{1F389}');
+    }, WORD_LENGTH * 120 + 500);
+  }
+
+  function showCelebration(text) {
+    var celeb = document.getElementById('wordleCelebration');
+    document.getElementById('celebrationText').textContent = text;
+    celeb.classList.add('active');
+    setTimeout(function() { transitionTo('stage4'); }, 2500);
+  }
+
+  /* ==============================================
+     STAGE 4 — THE BIG REVEAL (confetti + hearts)
+     ============================================== */
+  function startReveal() {
+    createFloatingHearts(document.getElementById('revealHearts'), 22);
+    startConfetti();
+  }
+
+  function startConfetti() {
+    var canvas = document.getElementById('confetti-canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    var colors = ['#ff1744','#ff4081','#ff80ab','#ffd700','#ffffff','#e91e63','#f48fb1','#ff6090'];
+    var particles = [];
+
+    for (var i = 0; i < 100; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        w: 5 + Math.random() * 7,
+        h: 3 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 4,
+        vy: 2 + Math.random() * 3,
+        rot: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 10,
+        opacity: 1
+      });
+    }
+
+    var frame = 0;
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      var alive = false;
+
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.04;
+        p.rot += p.rotSpeed;
+        if (frame > 150) p.opacity -= 0.004;
+
+        if (p.opacity > 0 && p.y < canvas.height + 50) {
+          alive = true;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot * Math.PI / 180);
+          ctx.globalAlpha = Math.max(0, p.opacity);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        }
+      }
+
+      frame++;
+      if (alive && frame < 500) requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener('resize', function() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
