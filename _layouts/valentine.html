@@ -537,9 +537,9 @@
     .memory-celebration .text { font-size: 22px; color: #ff4081; margin-top: 20px; text-align: center; padding: 0 20px; }
 
     /* ========================================== */
-    /* STAGE 5 — WORDLE                           */
+    /* STAGE 6 — WORDLE                           */
     /* ========================================== */
-    #stage5 {
+    #stage6 {
       background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -666,7 +666,7 @@
     .key.absent  { background: #333; color: #555; }
 
     .give-up-btn {
-      margin: 14px 0 24px;
+      margin: 28px 0 40px;
       padding: 10px 32px;
       font-size: 14px;
       background: transparent;
@@ -698,9 +698,140 @@
     .wordle-celebration .text  { font-size: 22px; color: #ff4081; margin-top: 20px; text-align: center; padding: 0 20px; }
 
     /* ========================================== */
-    /* STAGE 6 — THE BIG REVEAL                   */
+    /* STAGE 5 — CONNECTIONS                       */
     /* ========================================== */
-    #stage6 {
+    #stage5 {
+      background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .conn-container {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 24px 16px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .conn-title {
+      font-size: 22px;
+      color: #ff80ab;
+      margin-bottom: 8px;
+    }
+
+    .conn-solved-groups {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .conn-solved-row {
+      padding: 12px 8px;
+      border-radius: 8px;
+      text-align: center;
+      animation: fadeInUp 0.4s ease;
+    }
+
+    .conn-solved-row .conn-cat-name {
+      font-size: 15px;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #1a0a1e;
+    }
+
+    .conn-solved-row .conn-cat-words {
+      font-size: 13px;
+      color: rgba(26, 10, 30, 0.7);
+      margin-top: 2px;
+    }
+
+    .conn-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .conn-tile {
+      height: 65px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid transparent;
+      color: #fff;
+      font-size: 13px;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.2s, background 0.2s, transform 0.2s;
+      text-transform: uppercase;
+    }
+
+    .conn-tile:active { transform: scale(0.95); }
+
+    .conn-tile.selected {
+      border-color: #ff4081;
+      background: rgba(255, 64, 129, 0.25);
+      box-shadow: 0 0 12px rgba(255, 64, 129, 0.3);
+    }
+
+    .conn-tile.shake {
+      animation: shake 0.5s ease-in-out;
+    }
+
+    .conn-message {
+      font-size: 15px;
+      color: #ffd700;
+      min-height: 22px;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    .conn-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .conn-deselect-btn, .conn-submit-btn {
+      padding: 12px 28px;
+      font-size: 15px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-family: Georgia, serif;
+      transition: opacity 0.2s;
+    }
+
+    .conn-deselect-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 64, 129, 0.35);
+      color: rgba(255, 64, 129, 0.7);
+    }
+
+    .conn-submit-btn {
+      background: linear-gradient(135deg, #ff1744, #ff4081);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(255, 23, 68, 0.4);
+    }
+
+    .conn-submit-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .conn-deselect-btn:active, .conn-submit-btn:active { opacity: 0.7; }
+
+    /* ========================================== */
+    /* STAGE 7 — THE BIG REVEAL                   */
+    /* ========================================== */
+    #stage7 {
       background: radial-gradient(ellipse at center, #2d1035 0%, #1a0a1e 70%);
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -818,11 +949,26 @@
   </div>
 </div>
 
-<!-- ============ STAGE 5: WORDLE ============ -->
+<!-- ============ STAGE 5: CONNECTIONS ============ -->
 <div class="stage" id="stage5">
+  <div class="conn-container">
+    <h2 class="conn-title">&#x1F517; Make the connection</h2>
+    <div class="conn-solved-groups" id="connSolved"></div>
+    <div class="conn-grid" id="connGrid"></div>
+    <p class="conn-message" id="connMessage"></p>
+    <div class="conn-buttons" id="connButtons">
+      <button class="conn-deselect-btn" id="connDeselect">Deselect</button>
+      <button class="conn-submit-btn" id="connSubmit">Submit</button>
+    </div>
+    <button class="give-up-btn" id="connGiveUp">I give up &#x1F605;</button>
+  </div>
+</div>
+
+<!-- ============ STAGE 6: WORDLE ============ -->
+<div class="stage" id="stage6">
   <div class="wordle-container">
     <h2 class="wordle-title">&#x1F9E9; Guess the Word</h2>
-    <p class="wordle-subtitle">10 letters &bull; 6 attempts</p>
+    <p class="wordle-subtitle">10 letters</p>
     <div class="wordle-grid" id="wordleGrid"></div>
     <div class="wordle-hint" id="wordleHint"></div>
     <div class="keyboard" id="keyboard"></div>
@@ -834,8 +980,8 @@
   </div>
 </div>
 
-<!-- ============ STAGE 6: THE BIG REVEAL ============ -->
-<div class="stage" id="stage6">
+<!-- ============ STAGE 7: THE BIG REVEAL ============ -->
+<div class="stage" id="stage7">
   <canvas id="confetti-canvas"></canvas>
   <div class="floating-hearts" id="revealHearts"></div>
   <div class="reveal-content">
@@ -888,8 +1034,9 @@
       if (stageId === 'stage2') startTypewriter();
       if (stageId === 'stage3') initPuzzle();
       if (stageId === 'stage4') initMemoryMatch();
-      if (stageId === 'stage5') initWordle();
-      if (stageId === 'stage6') startReveal();
+      if (stageId === 'stage5') initConnections();
+      if (stageId === 'stage6') initWordle();
+      if (stageId === 'stage7') startReveal();
     }, 600);
   }
 
@@ -1256,7 +1403,7 @@
   }
 
   /* ==============================================
-     STAGE 5 — WORDLE (BADFRIENDS)
+     STAGE 6 — WORDLE (BADFRIENDS)
      ============================================== */
   var ANSWER = 'BADFRIENDS';
   var WORD_LENGTH = 10;
@@ -1393,10 +1540,19 @@
       else if (currentRow === 5) hintEl.textContent = '\u{1F4A1} Hint: Bobby & Andrew...';
     }, revealDone);
 
-    // Check loss
+    // Add a new row dynamically if needed (unlimited attempts)
     if (currentRow >= MAX_ATTEMPTS) {
-      gameOver = true;
-      setTimeout(function() { revealAnswer(); }, revealDone + 200);
+      var grid = document.getElementById('wordleGrid');
+      var newRow = document.createElement('div');
+      newRow.className = 'wordle-row';
+      for (var nc = 0; nc < WORD_LENGTH; nc++) {
+        var newCell = document.createElement('div');
+        newCell.className = 'wordle-cell';
+        newCell.id = 'cell-' + currentRow + '-' + nc;
+        newRow.appendChild(newCell);
+      }
+      grid.appendChild(newRow);
+      MAX_ATTEMPTS++;
     }
   }
 
@@ -1450,11 +1606,223 @@
     var celeb = document.getElementById('wordleCelebration');
     document.getElementById('celebrationText').textContent = text;
     celeb.classList.add('active');
-    setTimeout(function() { transitionTo('stage6'); }, 2500);
+    setTimeout(function() { transitionTo('stage7'); }, 2500);
   }
 
   /* ==============================================
-     STAGE 6 — THE BIG REVEAL (confetti + hearts)
+     STAGE 5 — CONNECTIONS
+     ============================================== */
+  var CONN_GROUPS = [
+    { name: 'Pet names', color: '#f9df6d', words: ['BABE','HONEY','BOO','ANGEL'] },
+    { name: 'Date night', color: '#a0c35a', words: ['DINNER','CANDLE','FLOWERS','TICKETS'] },
+    { name: 'In a garden', color: '#b0c4ef', words: ['POD','BUD','BLOOM','PETAL'] },
+    { name: 'Where love starts', color: '#ba81c5', words: ['FRIEND','STRANGER','SPARK','SMILE'] }
+  ];
+
+  var connState = {
+    selected: [],
+    solved: [],
+    words: []
+  };
+
+  function initConnections() {
+    connState.selected = [];
+    connState.solved = [];
+
+    // Gather all 16 words and shuffle
+    var allWords = [];
+    for (var g = 0; g < CONN_GROUPS.length; g++) {
+      for (var w = 0; w < CONN_GROUPS[g].words.length; w++) {
+        allWords.push(CONN_GROUPS[g].words[w]);
+      }
+    }
+    // Fisher-Yates shuffle
+    for (var i = allWords.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = allWords[i]; allWords[i] = allWords[j]; allWords[j] = tmp;
+    }
+    connState.words = allWords;
+
+    document.getElementById('connSolved').innerHTML = '';
+    document.getElementById('connMessage').textContent = '';
+    document.getElementById('connButtons').style.display = 'flex';
+    document.getElementById('connGiveUp').style.display = 'block';
+    renderConnGrid();
+    document.getElementById('connSubmit').disabled = true;
+
+    document.getElementById('connDeselect').onclick = connDeselectAll;
+    document.getElementById('connSubmit').onclick = connSubmit;
+    document.getElementById('connGiveUp').onclick = function() {
+      connDeselectAll();
+      connRevealAll();
+    };
+  }
+
+  function renderConnGrid() {
+    var grid = document.getElementById('connGrid');
+    grid.innerHTML = '';
+
+    // Collect solved words
+    var solvedWords = [];
+    for (var s = 0; s < connState.solved.length; s++) {
+      var grp = connState.solved[s];
+      for (var w = 0; w < grp.words.length; w++) solvedWords.push(grp.words[w]);
+    }
+
+    // Only show remaining words
+    var remaining = [];
+    for (var i = 0; i < connState.words.length; i++) {
+      if (solvedWords.indexOf(connState.words[i]) === -1) remaining.push(connState.words[i]);
+    }
+
+    for (var i = 0; i < remaining.length; i++) {
+      var tile = document.createElement('div');
+      tile.className = 'conn-tile';
+      tile.textContent = remaining[i];
+      tile.setAttribute('data-word', remaining[i]);
+      if (connState.selected.indexOf(remaining[i]) !== -1) {
+        tile.classList.add('selected');
+      }
+      tile.addEventListener('click', onConnTileClick);
+      grid.appendChild(tile);
+    }
+  }
+
+  function onConnTileClick() {
+    var word = this.getAttribute('data-word');
+    var idx = connState.selected.indexOf(word);
+    if (idx !== -1) {
+      connState.selected.splice(idx, 1);
+      this.classList.remove('selected');
+    } else {
+      if (connState.selected.length >= 4) return;
+      connState.selected.push(word);
+      this.classList.add('selected');
+    }
+    document.getElementById('connSubmit').disabled = connState.selected.length !== 4;
+    document.getElementById('connMessage').textContent = '';
+  }
+
+  function connDeselectAll() {
+    connState.selected = [];
+    var tiles = document.querySelectorAll('.conn-tile.selected');
+    for (var i = 0; i < tiles.length; i++) tiles[i].classList.remove('selected');
+    document.getElementById('connSubmit').disabled = true;
+    document.getElementById('connMessage').textContent = '';
+  }
+
+  function connSubmit() {
+    if (connState.selected.length !== 4) return;
+
+    // Check if selected matches any unsolved group
+    var matchGroup = null;
+    var bestOverlap = 0;
+    for (var g = 0; g < CONN_GROUPS.length; g++) {
+      var isSolved = false;
+      for (var s = 0; s < connState.solved.length; s++) {
+        if (connState.solved[s].name === CONN_GROUPS[g].name) { isSolved = true; break; }
+      }
+      if (isSolved) continue;
+
+      var overlap = 0;
+      for (var w = 0; w < connState.selected.length; w++) {
+        if (CONN_GROUPS[g].words.indexOf(connState.selected[w]) !== -1) overlap++;
+      }
+      if (overlap === 4) { matchGroup = CONN_GROUPS[g]; break; }
+      if (overlap > bestOverlap) bestOverlap = overlap;
+    }
+
+    if (matchGroup) {
+      // Correct group found
+      connState.solved.push(matchGroup);
+      connState.selected = [];
+
+      // Add solved banner row
+      var solvedEl = document.getElementById('connSolved');
+      var row = document.createElement('div');
+      row.className = 'conn-solved-row';
+      row.style.background = matchGroup.color;
+      var catName = document.createElement('div');
+      catName.className = 'conn-cat-name';
+      catName.textContent = matchGroup.name;
+      var catWords = document.createElement('div');
+      catWords.className = 'conn-cat-words';
+      catWords.textContent = matchGroup.words.join(', ');
+      row.appendChild(catName);
+      row.appendChild(catWords);
+      solvedEl.appendChild(row);
+
+      renderConnGrid();
+      document.getElementById('connSubmit').disabled = true;
+      document.getElementById('connMessage').textContent = '';
+
+      // Check if all 4 solved
+      if (connState.solved.length === 4) {
+        document.getElementById('connButtons').style.display = 'none';
+        document.getElementById('connGiveUp').style.display = 'none';
+        document.getElementById('connMessage').textContent = '\u{1F496} You made all the connections!';
+        setTimeout(function() { transitionTo('stage6'); }, 2500);
+      }
+    } else {
+      // Wrong guess
+      if (bestOverlap === 3) {
+        document.getElementById('connMessage').textContent = 'One away\u2026';
+      } else {
+        document.getElementById('connMessage').textContent = 'Not quite!';
+      }
+
+      // Shake selected tiles
+      var tiles = document.querySelectorAll('.conn-tile.selected');
+      for (var i = 0; i < tiles.length; i++) tiles[i].classList.add('shake');
+      setTimeout(function() {
+        var shaking = document.querySelectorAll('.conn-tile.shake');
+        for (var i = 0; i < shaking.length; i++) shaking[i].classList.remove('shake');
+      }, 500);
+    }
+  }
+
+  function connRevealAll() {
+    document.getElementById('connGrid').innerHTML = '';
+    document.getElementById('connButtons').style.display = 'none';
+    document.getElementById('connGiveUp').style.display = 'none';
+    document.getElementById('connMessage').textContent = '';
+
+    var solvedEl = document.getElementById('connSolved');
+    var delay = 0;
+    for (var g = 0; g < CONN_GROUPS.length; g++) {
+      var isSolved = false;
+      for (var s = 0; s < connState.solved.length; s++) {
+        if (connState.solved[s].name === CONN_GROUPS[g].name) { isSolved = true; break; }
+      }
+      if (isSolved) continue;
+
+      (function(group, d) {
+        setTimeout(function() {
+          var row = document.createElement('div');
+          row.className = 'conn-solved-row';
+          row.style.background = group.color;
+          var catName = document.createElement('div');
+          catName.className = 'conn-cat-name';
+          catName.textContent = group.name;
+          var catWords = document.createElement('div');
+          catWords.className = 'conn-cat-words';
+          catWords.textContent = group.words.join(', ');
+          row.appendChild(catName);
+          row.appendChild(catWords);
+          solvedEl.appendChild(row);
+        }, d);
+      })(CONN_GROUPS[g], delay);
+      delay += 500;
+    }
+
+    setTimeout(function() {
+      document.getElementById('connMessage').textContent = 'Better luck next time! \u{1F495}';
+      setTimeout(function() { transitionTo('stage6'); }, 2500);
+    }, delay + 300);
+  }
+
+  /* ==============================================
+     STAGE 7 — THE BIG REVEAL (confetti + hearts)
      ============================================== */
   function startReveal() {
     createFloatingHearts(document.getElementById('revealHearts'), 22);
